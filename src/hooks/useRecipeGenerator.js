@@ -3,6 +3,7 @@ import { useState } from "react";
 import { normaliseRecipes } from "../utils/normaliseRecipes";
 
 const OPENAI_CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions";
+const DEV_PROXY_URL = "/api/openai"; // Vite dev proxy path
 
 export const useRecipeGenerator = (apiKey) => {
   const [recipes, setRecipes] = useState([]);
@@ -11,11 +12,8 @@ export const useRecipeGenerator = (apiKey) => {
 
   const generateRecipes = async (ingredients, isAlcoholic = true) => {
     const trimmedKey = apiKey.trim();
-
-    if (!trimmedKey) {
-      setErrorMessage("Missing OpenAI API key. Set VITE_OPENAI_API_KEY in .env.local.");
-      return;
-    }
+    // Always use proxy during Vite development to avoid CORS
+    const useProxy = import.meta.env?.DEV === true;
 
     if (!Array.isArray(ingredients) || ingredients.length === 0) {
       setErrorMessage("Add at least one ingredient before generating recipes.");
@@ -37,12 +35,14 @@ export const useRecipeGenerator = (apiKey) => {
     setRecipes([]);
 
     try {
-      const response = await fetch(OPENAI_CHAT_COMPLETIONS_URL, {
+      const endpoint = useProxy ? DEV_PROXY_URL : OPENAI_CHAT_COMPLETIONS_URL;
+      const headers = useProxy
+        ? { "Content-Type": "application/json" }
+        : { "Content-Type": "application/json", Authorization: `Bearer ${trimmedKey}` };
+
+      const response = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${trimmedKey}`,
-        },
+        headers,
         body: JSON.stringify({
           model: "gpt-5-nano",
           temperature: 1,
@@ -70,6 +70,14 @@ export const useRecipeGenerator = (apiKey) => {
           }
         } catch {
           // ignore JSON parse issues when building error detail
+        }
+        // Improve guidance on missing credentials in dev
+        if (response.status === 401 && useProxy) {
+          errorDetail =
+            "Missing or invalid server API key. Set OPENAI_API_KEY in your shell (for Vite dev server) or use a backend.";
+        } else if (response.status === 401 && !useProxy) {
+          errorDetail =
+            "Missing or invalid client API key. Set VITE_OPENAI_API_KEY in .env.local for local testing, or prefer the dev proxy.";
         }
         throw new Error(errorDetail);
       }

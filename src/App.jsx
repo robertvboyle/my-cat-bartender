@@ -4,7 +4,7 @@ import "./App.css";
 import AppHeader from "./components/AppHeader";
 import WelcomeScreen from "./components/WelcomeScreen";
 import IngredientsPanel from "./components/ingredients/IngredientsPanel";
-import RecipesPanel from "./components/recipes/RecipesPanel";
+import DrinksPanel from "./components/recipes/DrinksPanel";
 import { OPENAI_API_KEY } from "./constants";
 import { useRecipeGenerator } from "./hooks/useRecipeGenerator";
 
@@ -89,7 +89,7 @@ function App() {
             onAlcoholPreferenceChange={handleAlcoholPreferenceChange}
           />
         ) : (
-          <RecipesPanel
+          <DrinksPanel
             recipes={recipes}
             isLoading={isLoading}
             errorMessage={errorMessage}

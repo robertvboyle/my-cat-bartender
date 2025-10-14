@@ -1,8 +1,8 @@
 ﻿import { LOADING_GIF_SRC } from "../../constants";
 
-const RecipesPanel = ({ recipes, isLoading, errorMessage, onEditIngredients }) => (
+const DrinksPanel = ({ recipes, isLoading, errorMessage, onEditIngredients }) => (
   <div className="column column--recipes">
-    <h2>recipes</h2>
+    <h2>drinks</h2>
 
     <div className="recipes-output">
       {errorMessage && <div className="status status--error">{errorMessage}</div>}
@@ -13,7 +13,6 @@ const RecipesPanel = ({ recipes, isLoading, errorMessage, onEditIngredients }) =
           <img
             src={LOADING_GIF_SRC}
             alt="Cat bartender shaking a cocktail shaker."
-            //<!-- className="status__loading-gif" -->
           />
         </div>
       )}
@@ -46,10 +45,10 @@ const RecipesPanel = ({ recipes, isLoading, errorMessage, onEditIngredients }) =
         onClick={onEditIngredients}
         disabled={isLoading}
       >
-        {isLoading ? "mixing..." : "generate new recipes"}
+        {isLoading ? "mixing..." : "generate new drinks"}
       </button>
     )}
   </div>
 );
 
-export default RecipesPanel;
+export default DrinksPanel;
