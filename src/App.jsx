@@ -5,6 +5,7 @@ import AppHeader from "./components/AppHeader";
 import WelcomeScreen from "./components/WelcomeScreen";
 import IngredientsPanel from "./components/ingredients/IngredientsPanel";
 import DrinksPanel from "./components/recipes/DrinksPanel";
+import RecipeDetails from "./components/recipes/RecipeDetails";
 import { OPENAI_API_KEY } from "./constants";
 import { useRecipeGenerator } from "./hooks/useRecipeGenerator";
 
@@ -14,6 +15,7 @@ function App() {
   const [showWelcome, setShowWelcome] = useState(true);
   const [isAlcoholic, setIsAlcoholic] = useState(true);
   const [activePanel, setActivePanel] = useState("ingredients");
+  const [selectedDrinkName, setSelectedDrinkName] = useState("");
 
   const {
     recipes,
@@ -67,6 +69,11 @@ function App() {
     }
   };
 
+  const handleSelectRecipe = (name) => {
+    setSelectedDrinkName(name);
+    setActivePanel("recipeDetails");
+  };
+
   if (showWelcome) {
     return <WelcomeScreen onEnter={() => setShowWelcome(false)} />;
   }
@@ -88,12 +95,21 @@ function App() {
             isAlcoholic={isAlcoholic}
             onAlcoholPreferenceChange={handleAlcoholPreferenceChange}
           />
-        ) : (
+        ) : activePanel === "recipes" ? (
           <DrinksPanel
             recipes={recipes}
             isLoading={isLoading}
             errorMessage={errorMessage}
             onEditIngredients={handleReturnToIngredients}
+            onSelectRecipe={handleSelectRecipe}
+          />
+        ) : (
+          <RecipeDetails
+            apiKey={OPENAI_API_KEY}
+            drinkName={selectedDrinkName}
+            allowedIngredients={ingredients}
+            isAlcoholic={isAlcoholic}
+            onBack={() => setActivePanel("recipes")}
           />
         )}
       </section>
@@ -102,3 +118,16 @@ function App() {
 }
 
 export default App;
+
+
+
+/*
+New features:
+  - social platform, friends system
+  - recipe saving and sharing
+  - recipe review and upvote 
+  - customizable cat avatars, background
+  - feed of user generated recipe content
+  - leaderboard of most popular recipes
+
+*/

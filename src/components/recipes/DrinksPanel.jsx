@@ -1,6 +1,12 @@
 ﻿import { LOADING_GIF_SRC } from "../../constants";
 
-const DrinksPanel = ({ recipes, isLoading, errorMessage, onEditIngredients }) => (
+const DrinksPanel = ({
+  recipes,
+  isLoading,
+  errorMessage,
+  onEditIngredients,
+  onSelectRecipe,
+}) => (
   <div className="column column--recipes">
     <h2>drinks</h2>
 
@@ -27,7 +33,19 @@ const DrinksPanel = ({ recipes, isLoading, errorMessage, onEditIngredients }) =>
         <ol className="recipes-list">
           {recipes.map((recipe, index) => (
             <li key={`${recipe.name}-${index}`}>
-              <h3>{recipe.name}</h3>
+              {onSelectRecipe ? (
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() => onSelectRecipe(recipe.name)}
+                  disabled={isLoading}
+                  aria-label={`View detailed recipe for ${recipe.name}`}
+                >
+                  <h3>{recipe.name}</h3>
+                </button>
+              ) : (
+                <h3>{recipe.name}</h3>
+              )}
               {recipe.description && <p>{recipe.description}</p>}
               {recipe.instructions && (
                 <p className="recipe-instructions">{recipe.instructions}</p>

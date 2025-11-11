@@ -266,6 +266,7 @@
 .recipes-list h3 {
   margin: 0 0 0.5rem;
   font-size: 1.15rem;
+  text-transform: lowercase;
 }
 
 .recipes-list p {
@@ -277,6 +278,45 @@
 .recipe-instructions {
   font-style: italic;
   color: #5a3d2b;
+}
+
+.recipe-details h3 {
+  text-transform: lowercase;
+}
+
+/* clickable drink name button */
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.4rem 0.85rem;
+  border: none;
+  border-radius: 999px;
+  background-color: #ffd3a1; /* light, warm orange */
+  color: #111111;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.link-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(255, 142, 73, 0.3);
+  background-color: #ffc891;
+}
+
+.link-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.link-button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.link-button h3 {
+  margin: 0; /* keep pill compact */
 }
 
 .sr-only {

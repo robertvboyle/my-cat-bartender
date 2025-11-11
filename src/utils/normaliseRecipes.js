@@ -12,6 +12,11 @@
         typeof recipe.instructions === "string"
           ? recipe.instructions.trim()
           : "",
+      ingredients: Array.isArray(recipe.ingredients)
+        ? recipe.ingredients
+            .map((i) => (typeof i === "string" ? i.trim() : ""))
+            .filter(Boolean)
+        : [],
     }))
     .filter((recipe) => recipe.name);
 };

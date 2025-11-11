@@ -23,12 +23,16 @@ export const useRecipeGenerator = (apiKey) => {
     const drinkLabel = isAlcoholic ? "alcoholic drinks" : "non-alcoholic drinks";
     const recipeLabel = isAlcoholic ? "alcoholic drink" : "non-alcoholic drink";
     const staples = isAlcoholic
-      ? "common bar staples like ice, citrus, sugar, and simple garnishes"
-      : "common mocktail staples like ice, citrus, sugar, soda water, and simple garnishes";
+      ? "common bar staples like ice, citrus (lemon/lime/orange), sugar/simple syrup, and simple garnishes"
+      : "common mocktail staples like ice, citrus (lemon/lime/orange), sugar/simple syrup, soda water/club soda, and simple garnishes";
     const restrictionLine = isAlcoholic
       ? ""
       : " Ensure every recipe is completely free of alcohol, spirits, and liqueurs.";
-    const userContent = `Available ingredients: ${ingredients.join(", ")}. The user wants ${drinkLabel}. Suggest up to 5 distinct ${recipeLabel} recipes that a home bartender can make with these ingredients (you may assume access to ${staples}).${restrictionLine} For each recipe provide a JSON object with name, description (1-2 sentences), and instructions (1-3 short steps). Return a single JSON object shaped as {"recipes":[{...}]}.`;
+    const userContent = `You must only use ingredients from the user's provided list plus ${staples}. Do not introduce any other ingredients.
+
+Available ingredients: ${ingredients.join(", ")}. The user wants ${drinkLabel}. Suggest up to 5 distinct ${recipeLabel} recipes that a home bartender can make strictly using these ingredients (you may assume access to ${staples}).${restrictionLine}
+
+For each recipe, return a JSON object with: name (string), description (1-2 sentences), instructions (1-3 short steps), and ingredients (array of ingredient names used, without quantities). Ensure the ingredients array is a subset of the provided ingredients plus the allowed staples. Return a single JSON object shaped exactly as {"recipes":[{...}]}.`;
 
     setIsLoading(true);
     setErrorMessage("");
@@ -95,13 +99,44 @@ export const useRecipeGenerator = (apiKey) => {
         throw new Error("Could not understand the recipe response. Please try again.");
       }
 
-      const normalisedRecipes = normaliseRecipes(parsed).slice(0, 5);
+      // Normalise first
+      const normalisedRecipes = normaliseRecipes(parsed);
 
-      if (normalisedRecipes.length === 0) {
-        throw new Error("No recipes generated. Try different ingredients.");
+      // Enforce ingredient constraints client-side as a backstop
+      const normalizeName = (s) =>
+        (s || "")
+          .toLowerCase()
+          .replace(/[^a-z0-9\s]/g, "")
+          .replace(/\s+/g, " ")
+          .trim();
+
+      const userAllowed = new Set(ingredients.map((i) => normalizeName(i)));
+      const stapleKeywords = isAlcoholic
+        ? ["ice", "citrus", "lemon", "lime", "orange", "sugar", "simple syrup", "garnish", "twist", "wedge", "slice", "mint", "salt"]
+        : ["ice", "citrus", "lemon", "lime", "orange", "sugar", "simple syrup", "soda water", "club soda", "sparkling water", "garnish", "twist", "wedge", "slice", "mint", "salt"];
+
+      const isStaple = (name) => {
+        const n = normalizeName(name);
+        return stapleKeywords.some((kw) => n.includes(kw));
+      };
+
+      const constrained = normalisedRecipes.filter((r) => {
+        if (!Array.isArray(r.ingredients) || r.ingredients.length === 0) return false;
+        return r.ingredients.every((ing) => {
+          const n = normalizeName(ing);
+          return userAllowed.has(n) || isStaple(n);
+        });
+      });
+
+      const limited = constrained.slice(0, 5);
+
+      if (limited.length === 0) {
+        throw new Error(
+          "No recipes matched your ingredient constraints. Try different ingredients."
+        );
       }
 
-      setRecipes(normalisedRecipes);
+      setRecipes(limited);
     } catch (error) {
       const message =
         error instanceof Error
